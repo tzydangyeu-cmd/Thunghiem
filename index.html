@@ -216,6 +216,10 @@
             font-size: 18px;
             color: white;
         }
+
+        #loadingScreen {
+            transition: opacity 1.2s ease;
+        }
     </style>
 
 </head>
@@ -421,82 +425,78 @@
         let bgSource;
 
         async function initAudio() {
-    try {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-        if (audioCtx.state === "suspended") {
-            await audioCtx.resume();
-        }
+                if (audioCtx.state === "suspended") {
+                    await audioCtx.resume();
+                }
 
-        // ===== DANH SÁCH FILE ÂM THANH =====
-        const files = [
-            { name: "boom", url: "audio/boom.mp3" },
-            { name: "bg", url: "audio/bg.mp3" }
-        ];
+                const files = [
+                    { name: "boom", url: "audio/boom.mp3" },
+                    { name: "bg", url: "audio/bg.mp3" }
+                ];
 
-        let totalBytes = 0;
-        let loadedBytes = 0;
+                let totalBytes = 0;
+                let loadedBytes = 0;
 
-        // ===== LẤY TỔNG DUNG LƯỢNG =====
-        for (const file of files) {
-            const res = await fetch(file.url, { method: "HEAD" });
-            const size = res.headers.get("Content-Length");
-            totalBytes += Number(size);
-        }
+                for (const file of files) {
+                    const res = await fetch(file.url, { method: "HEAD" });
+                    const size = res.headers.get("Content-Length");
+                    totalBytes += Number(size);
+                }
 
-        function updateProgress() {
-            const percent = Math.min(
-                100,
-                Math.floor((loadedBytes / totalBytes) * 100)
-            );
-            progressFill.style.width = percent + "%";
-            progressPercent.textContent = percent + "%";
-        }
+                function updateProgress() {
+                    const percent = Math.min(
+                        100,
+                        Math.floor((loadedBytes / totalBytes) * 100)
+                    );
+                    progressFill.style.width = percent + "%";
+                    progressPercent.textContent = percent + "%";
+                }
 
-        // ===== LOAD TỪNG FILE =====
-        for (const file of files) {
-            const response = await fetch(file.url);
-            const reader = response.body.getReader();
-            let chunks = [];
-            let received = 0;
+                for (const file of files) {
+                    const response = await fetch(file.url);
+                    const reader = response.body.getReader();
+                    let chunks = [];
+                    let received = 0;
 
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;
+                        chunks.push(value);
+                        received += value.length;
+                        loadedBytes += value.length;
+                        updateProgress();
+                    }
 
-                chunks.push(value);
-                received += value.length;
-                loadedBytes += value.length;
+                    const audioBuffer = await audioCtx.decodeAudioData(
+                        mergeChunks(chunks, received)
+                    );
+
+                    if (file.name === "boom") boomBuffer = audioBuffer;
+                    if (file.name === "bg") bgBuffer = audioBuffer;
+                }
+
                 updateProgress();
+                console.log("All audio loaded with real progress");
+
+            } catch (err) {
+                console.error("Audio load error:", err);
+                alert("Không tải được âm thanh 😥");
             }
-
-            const audioBuffer = await audioCtx.decodeAudioData(
-                mergeChunks(chunks, received)
-            );
-
-            if (file.name === "boom") boomBuffer = audioBuffer;
-            if (file.name === "bg") bgBuffer = audioBuffer;
-        }
-
-        updateProgress(); // đảm bảo 100%
-        console.log("All audio loaded with real progress");
-
-    } catch (err) {
-        console.error("Audio load error:", err);
-        alert("Không tải được âm thanh 😥");
-    }
         }
 
         function mergeChunks(chunks, totalLength) {
-    const buffer = new Uint8Array(totalLength);
-    let offset = 0;
+            const buffer = new Uint8Array(totalLength);
+            let offset = 0;
 
-    for (const chunk of chunks) {
-        buffer.set(chunk, offset);
-        offset += chunk.length;
-    }
+            for (const chunk of chunks) {
+                buffer.set(chunk, offset);
+                offset += chunk.length;
+            }
 
-    return buffer.buffer;
+            return buffer.buffer;
         }
 
         function playBG() {
@@ -583,9 +583,9 @@
                         playBG();
                         started = true;
                         animate();
-                    }, 1000);
-                }, 2000);
-            }, 1500);
+                    }, 1200);
+                }, 500);
+            }, 2500);
         });
 
     </script>
