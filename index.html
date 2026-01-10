@@ -93,13 +93,16 @@
                 opacity: 0;
                 transform: rotate(0deg);
             }
+
             20% {
                 opacity: 1;
             }
+
             80% {
                 opacity: 1;
                 transform: rotate(-90deg);
             }
+
             100% {
                 opacity: 0;
                 transform: rotate(-90deg);
@@ -184,6 +187,35 @@
                 0 0 30px rgba(255, 255, 255, 0.9);
             animation: glowText 2s ease-in-out infinite alternate;
         }
+
+        .loadingBox {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 18px;
+        }
+
+        .progressBar {
+            width: 280px;
+            height: 8px;
+            border: 1px solid white;
+            box-shadow: 0 0 10px white;
+            overflow: hidden;
+        }
+
+        .progressFill {
+            width: 0%;
+            height: 100%;
+            background: white;
+            box-shadow: 0 0 15px white;
+            transition: width 0.3s ease;
+        }
+
+        .progressPercent {
+            font-family: "TetFont", cursive;
+            font-size: 18px;
+            color: white;
+        }
     </style>
 
 </head>
@@ -206,9 +238,17 @@
     </div>
 
     <div id="loadingScreen">
-        <div class="loadingText">Đang chuẩn bị âm thanh...</div>
+        <div class="loadingBox">
+            <div class="loadingText">Loading...</div>
+
+            <div class="progressBar">
+                <div class="progressFill"></div>
+            </div>
+
+            <div class="progressPercent">0%</div>
+        </div>
     </div>
-    
+
     <canvas id="fireworks"></canvas>
     <script>
         const canvas = document.getElementById("fireworks");
@@ -232,7 +272,7 @@
                 rotateScreen.style.display = "none";
                 startIntro(
                     introScreen.style.display = "flex"
-                ); 
+                );
                 return true;
             }
 
@@ -388,12 +428,29 @@
                     await audioCtx.resume();
                 }
 
+                let loaded = 0;
+                const total = 2;
+
+                function updateProgress() {
+                    const percent = Math.round((loaded / total) * 100);
+                    progressFill.style.width = percent + "%";
+                    progressPercent.textContent = percent + "%";
+                }
+
+                // BOOM
                 const boomRes = await fetch("audio/boom.mp3");
                 const boomArr = await boomRes.arrayBuffer();
                 boomBuffer = await audioCtx.decodeAudioData(boomArr);
+                loaded++;
+                updateProgress();
+
+                // BG
                 const bgRes = await fetch("audio/bg.mp3");
                 const bgArr = await bgRes.arrayBuffer();
                 bgBuffer = await audioCtx.decodeAudioData(bgArr);
+                loaded++;
+                updateProgress();
+
                 console.log("All audio loaded");
             } catch (e) {
                 console.error("Audio load error", e);
@@ -423,6 +480,8 @@
     </script>
 
     <script>
+        const progressFill = document.querySelector(".progressFill");
+        const progressPercent = document.querySelector(".progressPercent");
         const loadingScreen = document.getElementById("loadingScreen");
         const introScreen = document.getElementById("introScreen");
         const introBox = document.getElementById("introBox");
