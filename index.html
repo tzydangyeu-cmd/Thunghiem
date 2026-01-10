@@ -8,8 +8,6 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-
-
     <style>
         html {
             width: 100%;
@@ -24,7 +22,6 @@
             font-family: Arial, sans-serif;
         }
 
-        /* xoay ngang */
         #rotateScreen {
             position: fixed;
             inset: 0;
@@ -52,7 +49,6 @@
             box-shadow: 0 0 20px rgba(255, 200, 0, 0.8);
         }
 
-        /* ===== FONT CHỮ RIÊNG ===== */
         @font-face {
             font-family: "TetFont";
             src: url("https://raw.githubusercontent.com/ngotranhoangthinhhtk8c-cmd/Dip_tet_nguyen_dan/202e0674ff4858d19e9c4d18cee0314c30a7529d/SVN-Dancing-script.ttf") format("truetype");
@@ -60,8 +56,6 @@
             font-style: normal;
         }
 
-
-        /* ===== MÀN XOAY ===== */
         #rotateScreen {
             position: fixed;
             inset: 0;
@@ -73,24 +67,19 @@
             z-index: 9999;
         }
 
-        /* ===== ICON ĐIỆN THOẠI ===== */
         #phoneIcon {
             width: 100px;
-            /* kích cở icon xoay ngang */
             margin-bottom: 40px;
             opacity: 0;
             animation: phoneAnim 1.8s linear infinite;
             filter: drop-shadow(0 0 12px white);
         }
 
-        /* ===== CHỮ PHÁT SÁNG ===== */
         .rotateText {
             font-family: "TetFont", cursive;
             font-size: 30px;
-            /* kích cỡ chữ yêu cầu xoay ngang*/
             color: white;
             text-align: center;
-
             text-shadow:
                 0 0 5px #fff,
                 0 0 15px #fff,
@@ -99,30 +88,24 @@
             animation: glowText 2s ease-in-out infinite alternate;
         }
 
-        /* ===== ANIMATION XOAY ĐIỆN THOẠI ===== */
         @keyframes phoneAnim {
             0% {
                 opacity: 0;
                 transform: rotate(0deg);
             }
-
             20% {
                 opacity: 1;
             }
-
             80% {
                 opacity: 1;
                 transform: rotate(-90deg);
             }
-
             100% {
                 opacity: 0;
                 transform: rotate(-90deg);
             }
         }
 
-
-        /* ===== CHỮ NHÁY SÁNG ===== */
         @keyframes glowText {
             from {
                 text-shadow:
@@ -138,7 +121,6 @@
             }
         }
 
-        /* ===== INTRO SCREEN ===== */
         #introScreen {
             position: fixed;
             inset: 0;
@@ -149,7 +131,6 @@
             z-index: 20;
         }
 
-        /* ===== KHUNG VIỀN ===== */
         #introBox {
             padding: 40px 60px;
             border: 2px solid white;
@@ -159,7 +140,6 @@
             position: relative;
         }
 
-        /* ===== CHỮ CHÍNH ===== */
         #introText {
             font-family: "TetFont", cursive;
             font-size: 38px;
@@ -172,7 +152,6 @@
                 0 0 30px rgba(255, 255, 255, 0.9);
         }
 
-        /* ===== CHỮ NHỎ ===== */
         #tapHint {
             position: absolute;
             bottom: -28px;
@@ -182,9 +161,7 @@
             font-family: "TetFont", cursive;
             letter-spacing: 0.5px;
             text-decoration: underline;
-            /* ← gạch ngang */
             text-underline-offset: 4px;
-            /* ← hạ gạch xuống cho đẹp */
         }
 
         #loadingScreen {
@@ -209,7 +186,6 @@
         }
     </style>
 
-
 </head>
 
 
@@ -222,30 +198,26 @@
         <div class="rotateText">Vui lòng xoay ngang màn hình</div>
     </div>
 
-    <!-- MÀN HÌNH BẮT ĐẦU -->
     <div id="introScreen">
         <div id="introBox">
             <div id="introText"></div>
             <div id="tapHint"></div>
         </div>
     </div>
+
     <div id="loadingScreen">
         <div class="loadingText">Đang chuẩn bị âm thanh...</div>
     </div>
-    <!-- phần pháo thường -->
+    
     <canvas id="fireworks"></canvas>
-
     <script>
         const canvas = document.getElementById("fireworks");
         const ctx = canvas.getContext("2d");
-
         const rotateScreen = document.getElementById("rotateScreen");
-
         let started = false;
         let rockets = [];
         let particles = [];
 
-        // --------- RESIZE ----------
         function resize() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
@@ -253,26 +225,22 @@
         resize();
         window.addEventListener("resize", resize);
 
-        // --------- KIỂM TRA XOAY ----------
         function checkOrientation() {
             const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
 
-            // ===== PC: KHÔNG KIỂM TRA XOAY =====
             if (!isMobile) {
                 rotateScreen.style.display = "none";
                 startIntro(
                     introScreen.style.display = "flex"
-                ); // PC luôn chạy intro
+                ); 
                 return true;
             }
 
-            // ===== MOBILE: ĐANG DỌC → BẮT XOAY =====
             if (window.innerHeight > window.innerWidth) {
                 rotateScreen.style.display = "flex";
                 return false;
             }
 
-            // ===== MOBILE: ĐÃ XOAY NGANG =====
             rotateScreen.style.display = "none";
             startIntro();
             return true;
@@ -281,7 +249,6 @@
         window.addEventListener("resize", checkOrientation);
         window.addEventListener("orientationchange", checkOrientation);
 
-        // --------- ROCKET ----------
         class Rocket {
             constructor() {
                 this.x = Math.random() * canvas.width;
@@ -322,11 +289,9 @@
 
             draw() {
                 if (this.stop) return;
-
                 ctx.save();
                 ctx.shadowBlur = 20;
                 ctx.shadowColor = this.color;
-
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, 2.5, 0, Math.PI * 2);
                 ctx.fillStyle = this.color;
@@ -335,28 +300,20 @@
             }
             explode() {
                 playBoom();
-
                 for (let i = 0; i < 100; i++) {
                     particles.push(new Particle(this.x, this.y, this.color));
                 }
             }
         }
-
-
-
-        // --------- PARTICLE ----------
         class Particle {
             constructor(x, y, color) {
                 this.x = x;
                 this.y = y;
                 this.color = color;
-
                 const angle = Math.random() * Math.PI * 2;
                 const speed = Math.random() * 6 + 4;
-
                 this.vx = Math.cos(angle) * speed;
                 this.vy = Math.sin(angle) * speed;
-
                 this.life = 120;
                 this.size = Math.random() * 2 + 1;
             }
@@ -364,10 +321,8 @@
             update() {
                 this.vx *= 0.97;
                 this.vy *= 0.97;
-
                 this.x += this.vx;
                 this.y += this.vy;
-
                 this.life--;
                 return this.life > 0;
             }
@@ -377,7 +332,6 @@
                 ctx.globalAlpha = this.life / 120;
                 ctx.shadowBlur = 30 + Math.random() * 10;
                 ctx.shadowColor = this.color;
-
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
                 ctx.fillStyle = this.color;
@@ -386,13 +340,10 @@
             }
         }
 
-        // --------- LOOP ----------
         function animate() {
             if (!started) return;
-
             ctx.fillStyle = "rgba(0,0,0,0.25)";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-
             if (Math.random() < 0.04) {
                 rockets.push(new Rocket());
             }
@@ -410,15 +361,11 @@
             requestAnimationFrame(animate);
         }
 
-
-
-        // kiểm tra ban đầu
         checkOrientation();
     </script>
     <script>
         function enterFullscreen() {
             const el = document.documentElement;
-
             if (el.requestFullscreen) {
                 el.requestFullscreen();
             } else if (el.webkitRequestFullscreen) {
@@ -426,9 +373,12 @@
             }
         }
     </script>
+
     <script>
         let audioCtx;
         let boomBuffer;
+        let bgBuffer;
+        let bgSource;
 
         async function initAudio() {
             try {
@@ -438,51 +388,53 @@
                     await audioCtx.resume();
                 }
 
-                console.log("Fetching audio...");
-
-                const response = await fetch("audio/boom.mp3");
-
-                if (!response.ok) {
-                    throw new Error("Không tải được file âm thanh");
-                }
-
-                const arrayBuffer = await response.arrayBuffer();
-                boomBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-
-                console.log("Audio loaded OK");
-            } catch (err) {
-                console.error("Audio load error:", err);
-                alert("Không tải được âm thanh 😥\nHãy kiểm tra lại file boom.mp3");
+                const boomRes = await fetch("audio/boom.mp3");
+                const boomArr = await boomRes.arrayBuffer();
+                boomBuffer = await audioCtx.decodeAudioData(boomArr);
+                const bgRes = await fetch("audio/bg.mp3");
+                const bgArr = await bgRes.arrayBuffer();
+                bgBuffer = await audioCtx.decodeAudioData(bgArr);
+                console.log("All audio loaded");
+            } catch (e) {
+                console.error("Audio load error", e);
+                alert("Không load được âm thanh 😥");
             }
         }
-        
+
+        function playBG() {
+            if (!bgBuffer || !audioCtx) return;
+            bgSource = audioCtx.createBufferSource();
+            bgSource.buffer = bgBuffer;
+            bgSource.loop = true;
+            const gainNode = audioCtx.createGain();
+            gainNode.gain.value = 0.4; // volume âm thanh nền
+            bgSource.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            bgSource.start(0);
+        }
 
         function playBoom() {
             if (!boomBuffer || !audioCtx) return;
-
             const source = audioCtx.createBufferSource();
             source.buffer = boomBuffer;
             source.connect(audioCtx.destination);
             source.start(0);
         }
     </script>
+
     <script>
         const loadingScreen = document.getElementById("loadingScreen");
         const introScreen = document.getElementById("introScreen");
         const introBox = document.getElementById("introBox");
         const introText = document.getElementById("introText");
         const tapHint = document.getElementById("tapHint");
-
         const mainText = "Hãy quên đi muộn phiền năm cũ\nCùng nhau đón Tết thôi nào";
         const hintText = "nhấn vào màn hình";
-
         const music = new Audio("https://raw.githubusercontent.com/tzydangyeu-cmd/Nam_moi_cho_em/main/sounds/bg.mp3");
-
         let textIndex = 0;
         let hintIndex = 0;
         let introDone = false;
 
-        /* ===== GÕ CHỮ CHÍNH ===== */
         function typeMainText() {
             if (textIndex < mainText.length) {
                 introText.textContent += mainText.charAt(textIndex);
@@ -493,7 +445,6 @@
             }
         }
 
-        /* ===== GÕ CHỮ NHỎ ===== */
         function typeHintText() {
             if (hintIndex < hintText.length) {
                 tapHint.textContent += hintText.charAt(hintIndex);
@@ -516,46 +467,32 @@
             setTimeout(typeMainText, 800);
         }
 
-        /* ===== NHẤN ĐỂ TIẾP TỤC ===== */
         introScreen.addEventListener("click", async () => {
             if (!introDone) return;
-
             enterFullscreen();
-
             introScreen.style.transition = "opacity 1.5s ease";
             introScreen.style.opacity = 0;
-
             setTimeout(async () => {
                 introScreen.remove();
-
-                // HIỆN LOADING
                 loadingScreen.style.display = "flex";
-
-                // KHỞI TẠO AUDIO (CÚ CHẠM HỢP LỆ)
                 await initAudio();
-
-                // LOADING XONG → DELAY 2S
                 setTimeout(() => {
                     loadingScreen.style.opacity = 0;
-
                     setTimeout(() => {
                         loadingScreen.remove();
+                        playBG();
                         started = true;
                         animate();
                     }, 1000);
-
                 }, 2000);
-
             }, 1500);
         });
 
-
     </script>
+
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
-
-            // ===== PC: CHẠY INTRO NGAY =====
             if (!isMobile) {
                 console.log("PC detected → start intro");
                 startIntro();
