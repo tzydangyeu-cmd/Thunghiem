@@ -320,7 +320,6 @@
                 const files = [
                     { name: "boom", url: "audio/boom.mp3" },
                     { name: "bg", url: "audio/bg.mp3" },
-                    { name: "count", url: "audio/phaodem.mp3" }
                 ];
 
                 let totalBytes = 0;
@@ -362,7 +361,6 @@
 
                     if (file.name === "boom") boomBuffer = audioBuffer;
                     if (file.name === "bg") bgBuffer = audioBuffer;
-                    if (file.name === "count") countBuffer = audioBuffer;
                 }
 
                 updateProgress();
@@ -518,40 +516,6 @@
     </script>
 
     <script>
-        /* =========================
-           E. FIREWORK SHOW SYSTEM
-              ========================= */
-
-        let fireworksStarted = false;
-        let particles = [];
-
-
-
-
-        function startFireworksShow() {
-            if (fireworksStarted) return;
-            fireworksStarted = true;
-            fireworks.push(new CountdownFirework(5));
-            animate();
-        }
-
-        function render() {
-            if (!fireworksStarted) return;
-
-            // nền đen + mờ nhẹ (sẽ nâng cấp sau)
-            ctx.fillStyle = "rgba(0,0,0,0.25)";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            // render hạt pháo
-            particles = particles.filter(p => {
-                p.update();
-                p.draw();
-                return p.life > 0;
-            });
-
-            requestAnimationFrame(render);
-        }
-
 
 
         function hexToRgb(hex) {
