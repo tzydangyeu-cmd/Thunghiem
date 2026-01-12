@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Fireworks Countdown</title>
+  <style>
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #000;
+    }
+
+    canvas {
+      display: block;
+    }
+  </style>
+</head>
+
+<body>
+
+  <canvas id="canvas"></canvas>
+
+  <script>
+    /* ================== CANVAS ================== */
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+
+    function resize() {
+      canvas.width = innerWidth;
+      canvas.height = innerHeight;
+    }
+    resize();
+    addEventListener("resize", resize);
+
+    /* ================== AUDIO (Web Audio API) ================== */
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function boomSound() {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(80, audioCtx.currentTime);
+      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.8);
+
+      osc.connect(gain).connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.8);
+    }
+
+    addEventListener("click", () => audioCtx.resume(), { once: true });
+
+    /* ================== BACKGROUND FLASH ================== */
+    let flash = 0;
+
+    /* ================== ROCKET ================== */
+    class Rocket {
+      constructor(targetY, number) {
+        this.x = canvas.width / 2;
+        this.y = canvas.height + 20;
+        this.vy = -8;
+        this.targetY = targetY;
+        this.number = number;
+        this.exploded = false;
+      }
+
+      update() {
+        this.y += this.vy;
+        if (this.y <= this.targetY && !this.exploded) {
+          this.explode();
+          this.exploded = true;
+        }
+      }
+
+      draw() {
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(this.x - 2, this.y, 4, 10);
+      }
+
+      explode() {
+        createNumberParticles(this.x, this.y, this.number);
+        boomSound();
+        flash = 1;
+      }
+    }
+
+    /* ================== PARTICLES ================== */
+    class Particle {
+      constructor(x, y, tx, ty, color) {
+        this.x = x;
+        this.y = y;
+        this.tx = tx;
+        this.ty = ty;
+        this.vx = (Math.random() - 0.5) * 6;
+        this.vy = (Math.random() - 0.5) * 6;
+        this.life = 120;
+        this.color = color;
+      }
+
+      update() {
+        // bay loe ra trước
+        if (this.life > 80) {
+          this.x += this.vx;
+          this.y += this.vy;
+        }
+        // sau đó tụ lại thành số
+        else {
+          this.x += (this.tx - this.x) * 0.12;
+          this.y += (this.ty - this.y) * 0.12;
+        }
+        this.life--;
+      }
+
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, 2.2, 0, Math.PI * 2);
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = this.color;
+        ctx.fillStyle = this.color;
+        ctx.fill();
+      }
+    }
+
+    let rockets = [];
+    let particles = [];
+
+    /* ================== CREATE NUMBER ================== */
+    function createNumberParticles(cx, cy, number) {
+      const off = document.createElement("canvas");
+      off.width = 200;
+      off.height = 200;
+      const octx = off.getContext("2d");
+
+      octx.fillStyle = "#fff";
+      octx.font = "bold 160px Arial";
+      octx.textAlign = "center";
+      octx.textBaseline = "middle";
+      octx.fillText(number, 100, 110);
+
+      const data = octx.getImageData(0, 0, 200, 200).data;
+      const color = randomColor();
+
+      for (let y = 0; y < 200; y += 5) {
+        for (let x = 0; x < 200; x += 5) {
+          if (data[(y * 200 + x) * 4 + 3] > 150) {
+            particles.push(
+              new Particle(
+                cx,
+                cy,
+                cx + x - 100,
+                cy + y - 100,
+                color
+              )
+            );
+          }
+        }
+      }
+    }
+
+    /* ================== COLOR ================== */
+    function randomColor() {
+      const r = 150 + Math.random() * 105;
+      const g = 150 + Math.random() * 105;
+      const b = 150 + Math.random() * 105;
+      return `rgb(${r},${g},${b})`;
+    }
+
+    /* ================== COUNTDOWN ================== */
+    let current = 5;
+
+    function launchNext() {
+      if (current === 0) return;
+      rockets.push(
+        new Rocket(canvas.height * 0.2, current)
+      );
+      current--;
+      setTimeout(launchNext, 1500);
+    }
+
+    /* ================== ANIMATE ================== */
+    function animate() {
+  // nền đen tuyệt đối mỗi frame
+  ctx.fillStyle = "rgba(0,0,0,1)";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // lóe sáng rất nhanh khi nổ
+  if (flash > 0.01) {
+    ctx.fillStyle = `rgba(255,255,255,${flash * 0.18})`;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    flash *= 0.6; // tắt lóe rất nhanh
+  } else {
+    flash = 0;
+  }
+
+  rockets = rockets.filter(r => !r.exploded);
+  rockets.forEach(r => {
+    r.update();
+    r.draw();
+  });
+
+  particles = particles.filter(p => p.life > 0);
+  particles.forEach(p => {
+    p.update();
+    p.draw();
+  });
+
+  requestAnimationFrame(animate);
+}
+
+    animate();
+    setTimeout(launchNext, 800);
+  </script>
+
+</body>
+
+</html>
